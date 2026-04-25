@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AttendEase – Smart Attendance Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --primary:#4f46e5;--primary-dark:#3730a3;
+  --accent:#06b6d4;--success:#10b981;--warning:#f59e0b;--danger:#ef4444;
+  --bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5f9;--border:#e2e8f0;
+  --text:#0f172a;--text2:#475569;--text3:#94a3b8;
+  --sidebar-w:256px;--radius:12px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
+  --shadow-lg:0 8px 32px rgba(79,70,229,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+button{cursor:pointer;font-family:inherit}
+input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+
+/* AUTH */
+.auth-screen{display:flex;min-height:100vh}
+.auth-panel{width:440px;display:flex;align-items:center;justify-content:center;background:#fff;padding:40px;border-right:1px solid var(--border);flex-shrink:0}
+.auth-hero{flex:1;background:linear-gradient(135deg,#4f46e5 0%,#06b6d4 100%);display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px;color:#fff;text-align:center}
+.hero-logo{display:flex;align-items:center;gap:12px;margin-bottom:40px}
+.hero-logo .li{width:52px;height:52px;background:rgba(255,255,255,.2);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:26px}
+.hero-logo span{font-size:28px;font-weight:800;letter-spacing:-1px}
+.hero-tag{font-size:38px;font-weight:800;line-height:1.15;letter-spacing:-1.5px;margin-bottom:16px}
+.hero-sub{font-size:16px;opacity:.8;max-width:360px;line-height:1.7}
+.hero-feats{margin-top:44px;display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:380px}
+.hf{display:flex;align-items:center;gap:8px;font-size:13px;opacity:.9;background:rgba(255,255,255,.1);padding:10px 14px;border-radius:10px}
+.auth-card{width:100%;max-width:360px}
+.auth-card h2{font-size:26px;font-weight:800;letter-spacing:-.5px;margin-bottom:4px}
+.auth-card .sub{color:var(--text2);font-size:14px;margin-bottom:26px}
+.auth-tabs{display:flex;gap:2px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:26px}
+.auth-tab{flex:1;padding:8px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:var(--text2);transition:.15s}
+.auth-tab.active{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+.fg{margin-bottom:14px}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.fg input,.fg select{width:100%;padding:11px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;outline:none;transition:.2s;color:var(--text);background:#fff}
+.fg input:focus,.fg select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.fg.err input{border-color:var(--danger)}
+.fg .errmsg{font-size:12px;color:var(--danger);margin-top:4px;display:none}
+.fg.err .errmsg{display:block}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 20px;border-radius:9px;font-size:14px;font-weight:600;border:none;transition:.2s;cursor:pointer;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-dark);transform:translateY(-1px);box-shadow:var(--shadow-lg)}
+.btn-full{width:100%}
+.auth-switch{text-align:center;font-size:13px;color:var(--text3);margin-top:16px}
+.auth-switch a{color:var(--primary);font-weight:600;cursor:pointer;text-decoration:underline}
+
+/* APP LAYOUT */
+.app{display:none;min-height:100vh}
+.app.active{display:flex}
+.sidebar{width:var(--sidebar-w);background:#0f172a;display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;z-index:100;overflow-y:auto}
+.s-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.07)}
+.s-logo-row{display:flex;align-items:center;gap:10px}
+.s-logo-icon{width:36px;height:36px;background:var(--primary);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.s-logo-text{font-size:18px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.s-logo-v{font-size:10px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.4);padding:2px 6px;border-radius:4px;margin-top:2px}
+.s-nav{flex:1;padding:14px 10px}
+.s-sec{margin-bottom:20px}
+.s-sec-title{font-size:10px;font-weight:700;color:rgba(255,255,255,.28);text-transform:uppercase;letter-spacing:1.2px;padding:0 8px;margin-bottom:6px}
+.ni{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.5);font-size:13.5px;font-weight:500;transition:.15s;border:none;background:transparent;width:100%;text-align:left}
+.ni:hover{color:#fff;background:rgba(255,255,255,.07)}
+.ni.active{color:#fff;background:var(--primary)}
+.ni .ic{width:18px;text-align:center;font-size:15px;flex-shrink:0}
+.ni .nb{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;min-width:18px;text-align:center}
+.s-footer{padding:12px 10px;border-top:1px solid rgba(255,255,255,.07)}
+.s-user{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px}
+.ava{border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;flex-shrink:0}
+.s-user-info{flex:1;min-width:0}
+.s-user-name{font-size:13px;font-weight:600;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.s-user-role{font-size:11px;color:rgba(255,255,255,.35)}
+.s-logout{background:none;border:none;color:rgba(255,255,255,.35);font-size:15px;cursor:pointer;padding:4px;transition:.15s}
+.s-logout:hover{color:#fff}
+
+/* MAIN */
+.main{flex:1;margin-left:var(--sidebar-w);display:flex;flex-direction:column;min-height:100vh}
+.topbar{height:60px;background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:50}
+.page-title-bar{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.tb-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.tb-date{font-size:12px;color:var(--text3);font-family:'JetBrains Mono',monospace}
+.tb-btn{width:36px;height:36px;border-radius:8px;border:1.5px solid var(--border);background:#fff;display:flex;align-items:center;justify-content:center;font-size:15px;cursor:pointer;transition:.2s}
+.tb-btn:hover{border-color:var(--primary);color:var(--primary)}
+.content{flex:1;padding:24px}
+
+/* PAGES */
+.page{display:none}
+.page.active{display:block;animation:fi .22s ease}
+@keyframes fi{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:14px;margin-bottom:22px}
+.sc{background:#fff;border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.sc-icon{width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.sc-icon.blue{background:#ede9fe;color:var(--primary)}
+.sc-icon.green{background:#d1fae5;color:var(--success)}
+.sc-icon.orange{background:#fef3c7;color:var(--warning)}
+.sc-icon.red{background:#fee2e2;color:var(--danger)}
+.sc-icon.cyan{background:#cffafe;color:var(--accent)}
+.sc-val{font-size:28px;font-weight:800;letter-spacing:-1px}
+.sc-lbl{font-size:12.5px;color:var(--text2);margin-top:3px;font-weight:500}
+.sc-sub{font-size:11.5px;margin-top:6px;font-weight:600}
+.sc-sub.up{color:var(--success)}.sc-sub.down{color:var(--danger)}.sc-sub.neu{color:var(--text3)}
+
+/* CARD */
+.card{background:#fff;border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border)}
+.ch{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.ct{font-size:14.5px;font-weight:700}
+.cb{padding:18px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.mb14{margin-bottom:14px}.mb18{margin-bottom:18px}.mb22{margin-bottom:22px}.mt10{margin-top:10px}
+.flex{display:flex}.ai{align-items:center}.jb{justify-content:space-between}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.fw{flex-wrap:wrap}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.7px;color:var(--text3);padding:9px 13px;text-align:left;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap}
+thead th:first-child{border-radius:8px 0 0 0}thead th:last-child{border-radius:0 8px 0 0}
+tbody tr{border-bottom:1px solid var(--border);transition:.12s}
+tbody tr:hover{background:var(--surface2)}
+tbody tr:last-child{border-bottom:none}
+tbody td{padding:11px 13px;font-size:13.5px;vertical-align:middle}
+.tdb{font-weight:600}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.bb{background:#ede9fe;color:#3730a3}
+.bg{background:#d1fae5;color:#065f46}
+.br{background:#fee2e2;color:#991b1b}
+.by{background:#fef3c7;color:#92400e}
+.bgr{background:#f1f5f9;color:#475569}
+
+/* BUTTONS */
+.btn-sm{padding:7px 13px;font-size:13px;border-radius:8px}
+.btn-xs{padding:5px 10px;font-size:12px;border-radius:7px}
+.btn-icon{width:30px;height:30px;padding:0;border-radius:7px;font-size:13px}
+.btn-outline{background:#fff;color:var(--text2);border:1.5px solid var(--border)}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary)}
+.btn-success{background:var(--success);color:#fff;border:none}
+.btn-success:hover{background:#059669}
+.btn-danger{background:var(--danger);color:#fff;border:none}
+.btn-danger:hover{background:#dc2626}
+.btn-warning{background:var(--warning);color:#fff;border:none}
+.btn-secondary{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border)}
+
+/* SEARCH */
+.sbar{display:flex;align-items:center;gap:8px;background:#fff;border:1.5px solid var(--border);border-radius:9px;padding:8px 12px;transition:.2s}
+.sbar:focus-within{border-color:var(--primary)}
+.sbar input{border:none;outline:none;font-size:13.5px;background:transparent;flex:1;color:var(--text)}
+.sbar .si{color:var(--text3)}
+
+/* SELECT */
+.sel{padding:9px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;outline:none;background:#fff;color:var(--text);transition:.2s}
+.sel:focus{border-color:var(--primary)}
+
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(15,23,42,.5);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:.2s}
+.mo.open{opacity:1;pointer-events:all}
+.md{background:#fff;border-radius:16px;padding:26px;width:90%;max-width:480px;transform:scale(.95);transition:.2s;box-shadow:0 24px 80px rgba(0,0,0,.18);max-height:90vh;overflow-y:auto}
+.mo.open .md{transform:scale(1)}
+.md h3{font-size:18px;font-weight:700;margin-bottom:4px}
+.md .mdsub{color:var(--text2);font-size:13.5px;margin-bottom:18px}
+.mfg{margin-bottom:12px}
+.mfg label{display:block;font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.mfg input,.mfg select,.mfg textarea{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13.5px;outline:none;transition:.2s;background:#fff;color:var(--text)}
+.mfg input:focus,.mfg select:focus,.mfg textarea:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.mfg textarea{min-height:70px;resize:vertical}
+.mact{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+
+/* ATTENDANCE BUTTONS */
+.abg{display:flex;gap:5px}
+.ab{padding:5px 11px;border-radius:6px;font-size:11.5px;font-weight:700;border:1.5px solid;cursor:pointer;transition:.15s;background:transparent}
+.ab.present{border-color:#10b981;color:#10b981}
+.ab.present.active,.ab.present:hover{background:#10b981;color:#fff}
+.ab.absent{border-color:#ef4444;color:#ef4444}
+.ab.absent.active,.ab.absent:hover{background:#ef4444;color:#fff}
+.ab.late{border-color:#f59e0b;color:#f59e0b}
+.ab.late.active,.ab.late:hover{background:#f59e0b;color:#fff}
+
+/* PROGRESS */
+.pbar{background:var(--border);border-radius:99px;height:7px;overflow:hidden;flex-shrink:0}
+.pfill{height:100%;border-radius:99px;transition:.4s}
+
+/* TABS */
+.tabs-row{display:flex;gap:2px;background:var(--surface2);padding:4px;border-radius:10px;margin-bottom:18px;width:fit-content}
+.tab{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;color:var(--text2);transition:.15s;border:none;background:transparent}
+.tab.active{background:#fff;color:var(--primary);box-shadow:var(--shadow)}
+
+/* EMPTY */
+.empty{text-align:center;padding:52px 20px;color:var(--text3)}
+.empty .ei{font-size:42px;margin-bottom:10px}
+.empty h3{font-size:15px;font-weight:600;color:var(--text2);margin-bottom:5px}
+.empty p{font-size:13px;max-width:260px;margin:0 auto;line-height:1.5}
+
+/* CHART */
+.chart-box{position:relative;height:200px}
+
+/* QUICK ACTIONS */
+.qa-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:22px}
+.qa{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:.2s}
+.qa:hover{border-color:var(--primary);transform:translateY(-2px);box-shadow:var(--shadow-lg)}
+.qa .qi{font-size:22px;margin-bottom:6px}
+.qa .ql{font-size:12.5px;font-weight:600;color:var(--text2)}
+
+/* REPORT ROWS */
+.rrow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--border)}
+.rrow:last-child{border-bottom:none}
+.rlbl{font-size:13px;color:var(--text2);font-weight:500}
+.rval{font-size:14px;font-weight:700}
+
+/* SETTINGS */
+.sitem{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.sitem:last-child{border-bottom:none}
+.sitem h4{font-size:13.5px;font-weight:600}
+.sitem p{font-size:12px;color:var(--text3);margin-top:2px}
+.toggle{width:42px;height:22px;background:var(--border);border-radius:99px;position:relative;cursor:pointer;transition:.2s;flex-shrink:0;border:none}
+.toggle.on{background:var(--primary)}
+.toggle::after{content:'';width:16px;height:16px;background:#fff;border-radius:50%;position:absolute;top:3px;left:3px;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.toggle.on::after{transform:translateX(20px)}
+.dz{background:#fff5f5;border:1.5px solid #fecaca;border-radius:10px;padding:14px}
+.dz h4{font-size:14px;font-weight:600;color:#b91c1c;margin-bottom:5px}
+.dz p{font-size:12.5px;color:#ef4444;margin-bottom:12px;line-height:1.5}
+
+/* COLORS */
+.tc-s{color:var(--success)}.tc-d{color:var(--danger)}.tc-w{color:var(--warning)}.tc-m{color:var(--text3)}.tc-p{color:var(--primary)}
+.fw6{font-weight:600}.fw7{font-weight:700}.fs12{font-size:12px}.fs13{font-size:13px}
+
+/* NOTIFICATION */
+.notif{position:fixed;top:18px;right:18px;background:#fff;border-radius:10px;box-shadow:0 8px 32px rgba(0,0,0,.14);padding:13px 16px;display:flex;align-items:center;gap:10px;z-index:9999;transform:translateX(130%);transition:.3s;border-left:4px solid var(--success);max-width:300px}
+.notif.show{transform:translateX(0)}
+.notif.error{border-left-color:var(--danger)}
+.notif-txt{font-size:13.5px;font-weight:500;color:var(--text)}
+
+/* RESPONSIVE */
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}.qa-grid{grid-template-columns:1fr 1fr}.auth-hero{display:none}.auth-panel{width:100%;border-right:none}}
+@media(max-width:600px){.sidebar{transform:translateX(-100%)}.sidebar.open{transform:translateX(0)}.main{margin-left:0}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<div class="notif" id="notif"><span id="ni" style="font-size:16px">✅</span><span class="notif-txt" id="nt"></span></div>
+
+<!-- ══ AUTH ══ -->
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-panel">
+    <div class="auth-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:24px">
+        <div style="width:40px;height:40px;background:var(--primary);border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px">📋</div>
+        <span style="font-size:22px;font-weight:800;letter-spacing:-.5px">AttendEase</span>
+      </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Sign In</button>
+        <button class="auth-tab" id="tab-register" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="login-form">
+        <h2>Welcome back</h2>
+        <div class="sub">Sign in to your account</div>
+        <div class="fg" id="fg-le"><label>Email</label><input type="email" id="l-email" placeholder="you@school.com" autocomplete="email"><div class="errmsg" id="err-le"></div></div>
+        <div class="fg" id="fg-lp"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"><div class="errmsg" id="err-lp"></div></div>
+        <button class="btn btn-primary btn-full" onclick="doLogin()">Sign In →</button>
+        <div class="auth-switch">No account? <a onclick="switchAuthTab('register')">Create one</a></div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="register-form" style="display:none">
+        <h2>Create Account</h2>
+        <div class="sub">Set up your AttendEase account</div>
+        <div class="form-row">
+          <div class="fg" id="fg-rfn"><label>First Name</label><input type="text" id="r-fname" placeholder="Muhammad"><div class="errmsg" id="err-rfn"></div></div>
+          <div class="fg" id="fg-rln"><label>Last Name</label><input type="text" id="r-lname" placeholder="Ali"><div class="errmsg" id="err-rln"></div></div>
+        </div>
+        <div class="fg" id="fg-re"><label>Email</label><input type="email" id="r-email" placeholder="you@school.com" autocomplete="email"><div class="errmsg" id="err-re"></div></div>
+        <div class="fg" id="fg-rs"><label>School / Institution</label><input type="text" id="r-school" placeholder="e.g. Govt. Model High School"><div class="errmsg" id="err-rs"></div></div>
+        <div class="fg"><label>Role</label><select id="r-role"><option value="admin">Administrator</option><option value="teacher">Teacher</option></select></div>
+        <div class="fg" id="fg-rp"><label>Password</label><input type="password" id="r-pass" placeholder="Min 6 characters" autocomplete="new-password"><div class="errmsg" id="err-rp"></div></div>
+        <div class="fg" id="fg-rp2"><label>Confirm Password</label><input type="password" id="r-pass2" placeholder="••••••••" autocomplete="new-password"><div class="errmsg" id="err-rp2"></div></div>
+        <button class="btn btn-primary btn-full" onclick="doRegister()">Create Account →</button>
+        <div class="auth-switch">Have an account? <a onclick="switchAuthTab('login')">Sign in</a></div>
+      </div>
+    </div>
+  </div>
+  <div class="auth-hero">
+    <div class="hero-logo"><div class="li">📋</div><span>AttendEase</span></div>
+    <div class="hero-tag">Smart Attendance,<br>Zero Hassle</div>
+    <div class="hero-sub">The all-in-one attendance management platform for modern educational institutions.</div>
+    <div class="hero-feats">
+      <div class="hf">👥 Student Management</div>
+      <div class="hf">📚 Class Tracking</div>
+      <div class="hf">✅ Mark Attendance</div>
+      <div class="hf">📊 Analytics</div>
+      <div class="hf">📤 Export Reports</div>
+      <div class="hf">🔐 Multi-account</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ══ -->
+<div class="app" id="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="s-logo">
+      <div class="s-logo-row">
+        <div class="s-logo-icon">📋</div>
+        <div><div class="s-logo-text">AttendEase</div><div class="s-logo-v">v2.0</div></div>
+      </div>
+    </div>
+    <nav class="s-nav">
+      <div class="s-sec"><div class="s-sec-title">Overview</div>
+        <button class="ni active" onclick="nav('dashboard',this)"><span class="ic">🏠</span>Dashboard</button>
+      </div>
+      <div class="s-sec"><div class="s-sec-title">Manage</div>
+        <button class="ni" onclick="nav('students',this)"><span class="ic">👥</span>Students<span class="nb" id="nb-s">0</span></button>
+        <button class="ni" onclick="nav('classes',this)"><span class="ic">📚</span>Classes<span class="nb" id="nb-c">0</span></button>
+        <button class="ni" onclick="nav('teachers',this)"><span class="ic">👨‍🏫</span>Teachers<span class="nb" id="nb-t">0</span></button>
+      </div>
+      <div class="s-sec"><div class="s-sec-title">Attendance</div>
+        <button class="ni" onclick="nav('mark',this)"><span class="ic">✅</span>Mark Attendance</button>
+        <button class="ni" onclick="nav('records',this)"><span class="ic">📅</span>Records</button>
+      </div>
+      <div class="s-sec"><div class="s-sec-title">Insights</div>
+        <button class="ni" onclick="nav('reports',this)"><span class="ic">📊</span>Reports</button>
+      </div>
+      <div class="s-sec"><div class="s-sec-title">Account</div>
+        <button class="ni" onclick="nav('settings',this)"><span class="ic">⚙️</span>Settings</button>
+        <button class="ni" onclick="nav('account',this)"><span class="ic">👤</span>My Account</button>
+      </div>
+    </nav>
+    <div class="s-footer">
+      <div class="s-user">
+        <div class="ava" id="s-ava" style="width:32px;height:32px;font-size:13px"></div>
+        <div class="s-user-info"><div class="s-user-name" id="s-uname"></div><div class="s-user-role" id="s-urole"></div></div>
+        <button class="s-logout" title="Logout" onclick="doLogout()">⏏</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title-bar" id="ptitle">Dashboard</div>
+      <div class="tb-right">
+        <div class="tb-date" id="tb-date"></div>
+        <button class="tb-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats-grid" id="dash-stats"></div>
+        <div class="qa-grid">
+          <div class="qa" onclick="navTo('mark')"><div class="qi">✅</div><div class="ql">Mark Attendance</div></div>
+          <div class="qa" onclick="openMod('add-student')"><div class="qi">➕</div><div class="ql">Add Student</div></div>
+          <div class="qa" onclick="openMod('add-class')"><div class="qi">📚</div><div class="ql">Add Class</div></div>
+          <div class="qa" onclick="navTo('reports')"><div class="qi">📊</div><div class="ql">View Reports</div></div>
+        </div>
+        <div class="g3 mb18">
+          <div class="card">
+            <div class="ch"><div class="ct">📈 Attendance Trend – Last 7 Days</div></div>
+            <div class="cb"><div class="chart-box"><canvas id="ch-trend"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="ct">🎯 Overall Summary</div></div>
+            <div class="cb"><div class="chart-box"><canvas id="ch-pie"></canvas></div></div>
+          </div>
+        </div>
+        <div class="g2">
+          <div class="card">
+            <div class="ch"><div class="ct">👥 Recent Students</div><button class="btn btn-outline btn-xs" onclick="navTo('students')">View All</button></div>
+            <div id="dash-recents"></div>
+          </div>
+          <div class="card">
+            <div class="ch"><div class="ct">📅 Today's Summary</div></div>
+            <div class="cb" id="dash-today"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDENTS -->
+      <div class="page" id="page-students">
+        <div class="flex ai jb mb18 fw g8">
+          <div class="flex ai g8 fw">
+            <div class="sbar"><span class="si">🔍</span><input type="text" id="stu-q" placeholder="Search students…" oninput="renderStudents()"></div>
+            <select class="sel" id="stu-cf" onchange="renderStudents()"><option value="">All Classes</option></select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openMod('add-student')">+ Add Student</button>
+        </div>
+        <div class="card"><div class="tw">
+          <table>
+            <thead><tr><th>#</th><th>Student</th><th>Roll No</th><th>Class</th><th>Contact</th><th>Attendance %</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="stu-tbody"></tbody>
+          </table>
+        </div><div class="empty" id="stu-empty" style="display:none"><div class="ei">👥</div><h3>No students yet</h3><p>Add your first student to get started.</p></div></div>
+      </div>
+
+      <!-- CLASSES -->
+      <div class="page" id="page-classes">
+        <div class="flex ai jb mb18 fw g8">
+          <div class="sbar"><span class="si">🔍</span><input type="text" id="cls-q" placeholder="Search classes…" oninput="renderClasses()"></div>
+          <button class="btn btn-primary btn-sm" onclick="openMod('add-class')">+ Add Class</button>
+        </div>
+        <div class="card"><div class="tw">
+          <table>
+            <thead><tr><th>#</th><th>Class Name</th><th>Subject</th><th>Schedule</th><th>Students</th><th>Attendance %</th><th>Actions</th></tr></thead>
+            <tbody id="cls-tbody"></tbody>
+          </table>
+        </div><div class="empty" id="cls-empty" style="display:none"><div class="ei">📚</div><h3>No classes yet</h3><p>Create your first class to begin.</p></div></div>
+      </div>
+
+      <!-- TEACHERS -->
+      <div class="page" id="page-teachers">
+        <div class="flex ai jb mb18 fw g8">
+          <div class="sbar"><span class="si">🔍</span><input type="text" id="tch-q" placeholder="Search teachers…" oninput="renderTeachers()"></div>
+          <button class="btn btn-primary btn-sm" onclick="openMod('add-teacher')">+ Add Teacher</button>
+        </div>
+        <div class="card"><div class="tw">
+          <table>
+            <thead><tr><th>#</th><th>Teacher</th><th>Subject</th><th>Classes</th><th>Email</th><th>Phone</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="tch-tbody"></tbody>
+          </table>
+        </div><div class="empty" id="tch-empty" style="display:none"><div class="ei">👨‍🏫</div><h3>No teachers yet</h3><p>Add your first teacher to get started.</p></div></div>
+      </div>
+
+      <!-- MARK ATTENDANCE -->
+      <div class="page" id="page-mark">
+        <div class="card mb18"><div class="cb">
+          <div class="flex ai g12 fw">
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Class</div>
+              <select class="sel" id="att-cls" onchange="loadAtt()"><option value="">Select Class…</option></select>
+            </div>
+            <div>
+              <div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Date</div>
+              <input type="date" class="sel" id="att-date" onchange="loadAtt()">
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-self:flex-end;flex-wrap:wrap">
+              <button class="btn btn-success btn-sm" onclick="markAll('present')">✓ All Present</button>
+              <button class="btn btn-danger btn-sm" onclick="markAll('absent')">✗ All Absent</button>
+              <button class="btn btn-warning btn-sm" onclick="markAll('late')">⏰ All Late</button>
+              <button class="btn btn-primary btn-sm" onclick="saveAtt()">💾 Save Attendance</button>
+            </div>
+          </div>
+        </div></div>
+        <div class="card">
+          <div class="ch"><div class="ct">📋 Attendance Sheet</div><div id="att-sum" style="font-size:13px;color:var(--text2)"></div></div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>#</th><th>Student Name</th><th>Roll No</th><th>Current Status</th><th>Mark</th></tr></thead>
+              <tbody id="att-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="att-empty"><div class="ei">📋</div><h3>Select class &amp; date</h3><p>Choose a class and date above to start marking attendance.</p></div>
+        </div>
+      </div>
+
+      <!-- RECORDS -->
+      <div class="page" id="page-records">
+        <div class="card mb18"><div class="cb">
+          <div class="flex ai g10 fw">
+            <div><div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Class</div><select class="sel" id="rec-cls" onchange="onRecCls()"><option value="">All Classes</option></select></div>
+            <div><div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Student</div><select class="sel" id="rec-stu" onchange="renderRecords()"><option value="">All Students</option></select></div>
+            <div><div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">From</div><input type="date" class="sel" id="rec-from" onchange="renderRecords()"></div>
+            <div><div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">To</div><input type="date" class="sel" id="rec-to" onchange="renderRecords()"></div>
+            <div><div style="font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-bottom:4px">Status</div><select class="sel" id="rec-stat" onchange="renderRecords()"><option value="">All</option><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select></div>
+            <button class="btn btn-outline btn-xs" style="align-self:flex-end" onclick="clearRec()">Clear</button>
+          </div>
+        </div></div>
+        <div class="card">
+          <div class="ch"><div class="ct">📅 Attendance Records</div><span id="rec-count" class="tc-m fs13"></span></div>
+          <div class="tw">
+            <table>
+              <thead><tr><th>Date</th><th>Student</th><th>Class</th><th>Status</th><th>Marked At</th><th>Actions</th></tr></thead>
+              <tbody id="rec-tbody"></tbody>
+            </table>
+          </div>
+          <div class="empty" id="rec-empty" style="display:none"><div class="ei">📅</div><h3>No records found</h3><p>Mark attendance to see records here.</p></div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div class="page" id="page-reports">
+        <div class="tabs-row">
+          <button class="tab active" onclick="switchTab('rep-ov',this)">Overview</button>
+          <button class="tab" onclick="switchTab('rep-cls',this)">By Class</button>
+          <button class="tab" onclick="switchTab('rep-stu',this)">By Student</button>
+        </div>
+        <div id="rep-ov">
+          <div class="stats-grid" id="rep-stats"></div>
+          <div class="g2">
+            <div class="card"><div class="ch"><div class="ct">📊 Monthly Attendance</div></div><div class="cb"><div class="chart-box" style="height:220px"><canvas id="ch-monthly"></canvas></div></div></div>
+            <div class="card"><div class="ch"><div class="ct">🎯 Status Distribution</div></div><div class="cb"><div class="chart-box" style="height:220px"><canvas id="ch-dist"></canvas></div></div></div>
+          </div>
+        </div>
+        <div id="rep-cls" style="display:none">
+          <div class="card"><div class="ch"><div class="ct">📚 Class-wise Attendance</div></div>
+            <div class="tw"><table>
+              <thead><tr><th>Class</th><th>Subject</th><th>Students</th><th>Sessions</th><th>Attendance %</th><th>Status</th></tr></thead>
+              <tbody id="rep-cls-tbody"></tbody>
+            </table></div>
+            <div class="empty" id="rep-cls-empty" style="display:none"><div class="ei">📚</div><h3>No classes yet</h3></div>
+          </div>
+        </div>
+        <div id="rep-stu" style="display:none">
+          <div class="flex ai g12 mb18 fw">
+            <select class="sel" id="rep-cls-f" onchange="renderRepStu()"><option value="">All Classes</option></select>
+            <div class="sbar"><span class="si">🔍</span><input type="text" id="rep-stu-q" placeholder="Search student…" oninput="renderRepStu()"></div>
+          </div>
+          <div class="card"><div class="tw"><table>
+            <thead><tr><th>Student</th><th>Class</th><th>Present</th><th>Absent</th><th>Late</th><th>Total</th><th>Attendance %</th></tr></thead>
+            <tbody id="rep-stu-tbody"></tbody>
+          </table></div>
+          <div class="empty" id="rep-stu-empty" style="display:none"><div class="ei">👥</div><h3>No students yet</h3></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div class="g2">
+          <div>
+            <div class="card mb18">
+              <div class="ch"><div class="ct">🏫 Institution Info</div></div>
+              <div class="cb">
+                <div class="mfg"><label>School / Institution Name</label><input type="text" id="set-school" placeholder="Your school name"></div>
+                <div class="mfg"><label>Academic Year</label><input type="text" id="set-year" placeholder="e.g. 2024-25"></div>
+                <div class="mfg"><label>Attendance Threshold (%)</label><input type="number" id="set-thr" min="0" max="100" placeholder="75"></div>
+                <button class="btn btn-primary btn-sm mt10" onclick="saveSettings()">Save Changes</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><div class="ct">📤 Data Management</div></div>
+              <div class="cb" style="display:flex;flex-direction:column;gap:8px">
+                <button class="btn btn-outline btn-sm" onclick="exportJSON()">📥 Export All Data (JSON)</button>
+                <button class="btn btn-outline btn-sm" onclick="exportCSV()">📊 Export Attendance (CSV)</button>
+                <label class="btn btn-outline btn-sm" style="cursor:pointer">📤 Import Data (JSON)<input type="file" accept=".json" onchange="importJSON(event)" style="display:none"></label>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb18">
+              <div class="ch"><div class="ct">🔔 Preferences</div></div>
+              <div class="cb">
+                <div class="sitem"><div><h4>Low Attendance Alert</h4><p>Alert when below threshold</p></div><button class="toggle on" id="tog-alert" onclick="this.classList.toggle('on')"></button></div>
+                <div class="sitem"><div><h4>Auto-save Attendance</h4><p>Save on every mark change</p></div><button class="toggle" id="tog-auto" onclick="this.classList.toggle('on')"></button></div>
+                <div class="sitem"><div><h4>Email Notifications</h4><p>Daily summary emails</p></div><button class="toggle" id="tog-email" onclick="this.classList.toggle('on')"></button></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><div class="ct">⚠️ Danger Zone</div></div>
+              <div class="cb"><div class="dz">
+                <h4>Reset All Data</h4>
+                <p>Permanently deletes all students, classes, teachers and attendance records for your account. This cannot be undone.</p>
+                <button class="btn btn-danger btn-sm" onclick="resetData()">🗑️ Reset Everything</button>
+              </div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY ACCOUNT -->
+      <div class="page" id="page-account">
+        <div class="g2">
+          <div>
+            <div class="card mb18">
+              <div class="ch"><div class="ct">👤 Profile Information</div></div>
+              <div class="cb">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;padding:14px;background:var(--surface2);border-radius:10px">
+                  <div class="ava" id="acc-ava" style="width:56px;height:56px;font-size:20px"></div>
+                  <div><div style="font-size:17px;font-weight:700" id="acc-name"></div><div style="font-size:13px;color:var(--text3)" id="acc-email-lbl"></div><div style="font-size:12px;color:var(--text3);margin-top:2px" id="acc-school-lbl"></div></div>
+                </div>
+                <div class="form-row">
+                  <div class="mfg"><label>First Name</label><input type="text" id="acc-fname" placeholder="First name"></div>
+                  <div class="mfg"><label>Last Name</label><input type="text" id="acc-lname" placeholder="Last name"></div>
+                </div>
+                <div class="mfg"><label>School / Institution</label><input type="text" id="acc-school" placeholder="School name"></div>
+                <div class="mfg"><label>Email (read-only)</label><input type="email" id="acc-email" readonly style="background:var(--surface2);cursor:not-allowed"></div>
+                <div class="mfg"><label>Role</label><input type="text" id="acc-role" readonly style="background:var(--surface2);cursor:not-allowed"></div>
+                <button class="btn btn-primary btn-sm mt10" onclick="saveProfile()">Update Profile</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb18">
+              <div class="ch"><div class="ct">🔑 Change Password</div></div>
+              <div class="cb">
+                <div class="mfg" id="fg-cc"><label>Current Password</label><input type="password" id="cp-cur" placeholder="Current password"><div class="errmsg" id="err-cc"></div></div>
+                <div class="mfg" id="fg-cn"><label>New Password</label><input type="password" id="cp-new" placeholder="Min 6 characters"><div class="errmsg" id="err-cn"></div></div>
+                <div class="mfg" id="fg-ck"><label>Confirm New Password</label><input type="password" id="cp-con" placeholder="Repeat new password"><div class="errmsg" id="err-ck"></div></div>
+                <button class="btn btn-primary btn-sm mt10" onclick="changePassword()">Change Password</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="ch"><div class="ct">🚪 Session</div></div>
+              <div class="cb">
+                <p style="font-size:13.5px;color:var(--text2);margin-bottom:14px;line-height:1.6">Signed in as <strong id="acc-signed-as"></strong>. Sign out to switch accounts or secure your session.</p>
+                <button class="btn btn-danger btn-sm" onclick="doLogout()">Sign Out</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ══ MODALS ══ -->
+
+<!-- Student -->
+<div class="mo" id="mo-add-student">
+  <div class="md">
+    <h3 id="mod-stu-title">Add Student</h3><div class="mdsub">Fill in the student details below.</div>
+    <input type="hidden" id="stu-edit-id">
+    <div class="form-row">
+      <div class="mfg"><label>First Name *</label><input type="text" id="ms-fname" placeholder="Muhammad"></div>
+      <div class="mfg"><label>Last Name *</label><input type="text" id="ms-lname" placeholder="Ali"></div>
+    </div>
+    <div class="form-row">
+      <div class="mfg"><label>Roll Number *</label><input type="text" id="ms-roll" placeholder="2024-001"></div>
+      <div class="mfg"><label>Class</label><select id="ms-cls"><option value="">No Class</option></select></div>
+    </div>
+    <div class="form-row">
+      <div class="mfg"><label>Email</label><input type="email" id="ms-email" placeholder="student@email.com"></div>
+      <div class="mfg"><label>Phone</label><input type="text" id="ms-phone" placeholder="+92 300 0000000"></div>
+    </div>
+    <div class="mfg"><label>Parent / Guardian</label><input type="text" id="ms-parent" placeholder="Parent name"></div>
+    <div class="mfg"><label>Status</label><select id="ms-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+    <div class="mact">
+      <button class="btn btn-secondary btn-sm" onclick="closeMods()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveStudent()">Save Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- Class -->
+<div class="mo" id="mo-add-class">
+  <div class="md">
+    <h3 id="mod-cls-title">Add Class</h3><div class="mdsub">Create a new class or subject.</div>
+    <input type="hidden" id="cls-edit-id">
+    <div class="form-row">
+      <div class="mfg"><label>Class Name *</label><input type="text" id="mc-name" placeholder="e.g. Class 10-A"></div>
+      <div class="mfg"><label>Subject *</label><input type="text" id="mc-subject" placeholder="e.g. Mathematics"></div>
+    </div>
+    <div class="form-row">
+      <div class="mfg"><label>Schedule</label><input type="text" id="mc-schedule" placeholder="Mon, Wed 9:00am"></div>
+      <div class="mfg"><label>Room</label><input type="text" id="mc-room" placeholder="Room 201"></div>
+    </div>
+    <div class="mfg"><label>Teacher</label><input type="text" id="mc-teacher" placeholder="Teacher name"></div>
+    <div class="mfg"><label>Description</label><textarea id="mc-desc" placeholder="Optional…"></textarea></div>
+    <div class="mact">
+      <button class="btn btn-secondary btn-sm" onclick="closeMods()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveClass()">Save Class</button>
+    </div>
+  </div>
+</div>
+
+<!-- Teacher -->
+<div class="mo" id="mo-add-teacher">
+  <div class="md">
+    <h3 id="mod-tch-title">Add Teacher</h3><div class="mdsub">Add a teacher to the system.</div>
+    <input type="hidden" id="tch-edit-id">
+    <div class="form-row">
+      <div class="mfg"><label>First Name *</label><input type="text" id="mt-fname" placeholder="Ahmed"></div>
+      <div class="mfg"><label>Last Name *</label><input type="text" id="mt-lname" placeholder="Khan"></div>
+    </div>
+    <div class="form-row">
+      <div class="mfg"><label>Subject</label><input type="text" id="mt-subject" placeholder="Mathematics"></div>
+      <div class="mfg"><label>Classes</label><input type="text" id="mt-classes" placeholder="Class 10-A, 10-B"></div>
+    </div>
+    <div class="form-row">
+      <div class="mfg"><label>Email</label><input type="email" id="mt-email" placeholder="teacher@school.com"></div>
+      <div class="mfg"><label>Phone</label><input type="text" id="mt-phone" placeholder="+92 300 0000000"></div>
+    </div>
+    <div class="mfg"><label>Status</label><select id="mt-status"><option value="active">Active</option><option value="inactive">Inactive</option></select></div>
+    <div class="mact">
+      <button class="btn btn-secondary btn-sm" onclick="closeMods()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveTeacher()">Save Teacher</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Delete -->
+<div class="mo" id="mo-confirm">
+  <div class="md" style="max-width:340px;text-align:center">
+    <div style="font-size:38px;margin-bottom:10px">🗑️</div>
+    <h3>Confirm Delete</h3>
+    <div class="mdsub" id="conf-msg">Are you sure?</div>
+    <div class="mact" style="justify-content:center">
+      <button class="btn btn-secondary btn-sm" onclick="closeMods()">Cancel</button>
+      <button class="btn btn-danger btn-sm" id="conf-ok">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Record -->
+<div class="mo" id="mo-edit-rec">
+  <div class="md" style="max-width:340px">
+    <h3>Edit Record</h3><div class="mdsub">Change the attendance status for this entry.</div>
+    <input type="hidden" id="rec-edit-id">
+    <div class="mfg"><label>Status</label>
+      <select id="rec-edit-stat"><option value="present">Present</option><option value="absent">Absent</option><option value="late">Late</option></select>
+    </div>
+    <div class="mact">
+      <button class="btn btn-secondary btn-sm" onclick="closeMods()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveRecEdit()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+//  STORAGE HELPERS
+// ─────────────────────────────────────────
+const LS={
+  get(k,d=[]){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d}catch{return d}},
+  getObj(k,d={}){try{const v=localStorage.getItem(k);return v!=null?JSON.parse(v):d}catch{return d}},
+  set(k,v){localStorage.setItem(k,JSON.stringify(v))},
+  rm(k){localStorage.removeItem(k)}
+};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+// ─────────────────────────────────────────
+//  AUTH STATE
+// ─────────────────────────────────────────
+let CU=null; // current user
+
+const USERS_KEY='ae_users';
+const SESSION_KEY='ae_session';
+const dk=n=>`ae_${CU.id}_${n}`; // per-account data key
+
+// ─────────────────────────────────────────
+//  AUTH FUNCTIONS
+// ─────────────────────────────────────────
+function switchAuthTab(t){
+  document.getElementById('tab-login').classList.toggle('active',t==='login');
+  document.getElementById('tab-register').classList.toggle('active',t==='register');
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('register-form').style.display=t==='register'?'block':'none';
+}
+
+function setFgErr(id,msg){
+  const el=document.getElementById(id);
+  if(!el)return;
+  if(msg){el.classList.add('err');const e=el.querySelector('.errmsg');if(e)e.textContent=msg;}
+  else el.classList.remove('err');
+}
+function clearFgErrs(...ids){ids.forEach(id=>setFgErr(id,''))}
+
+function doLogin(){
+  const email=gv('l-email').trim().toLowerCase();
+  const pass=gv('l-pass');
+  clearFgErrs('fg-le','fg-lp');
+  if(!email){setFgErr('fg-le','Email is required');return}
+  if(!pass){setFgErr('fg-lp','Password is required');return}
+  const users=LS.get(USERS_KEY,[]);
+  const user=users.find(u=>u.email===email);
+  if(!user){setFgErr('fg-le','No account found with this email');return}
+  if(user.password!==btoa(pass)){setFgErr('fg-lp','Incorrect password');return}
+  LS.set(SESSION_KEY,user.id);
+  CU=user;
+  startApp();
+}
+
+function doRegister(){
+  const fname=gv('r-fname').trim();
+  const lname=gv('r-lname').trim();
+  const email=gv('r-email').trim().toLowerCase();
+  const school=gv('r-school').trim();
+  const role=gv('r-role');
+  const pass=gv('r-pass');
+  const pass2=gv('r-pass2');
+  clearFgErrs('fg-rfn','fg-rln','fg-re','fg-rs','fg-rp','fg-rp2');
+  let ok=true;
+  if(!fname){setFgErr('fg-rfn','Required');ok=false}
+  if(!lname){setFgErr('fg-rln','Required');ok=false}
+  if(!email||!email.includes('@')){setFgErr('fg-re','Valid email required');ok=false}
+  if(!school){setFgErr('fg-rs','Required');ok=false}
+  if(!pass||pass.length<6){setFgErr('fg-rp','Minimum 6 characters');ok=false}
+  if(pass!==pass2){setFgErr('fg-rp2','Passwords do not match');ok=false}
+  if(!ok)return;
+  const users=LS.get(USERS_KEY,[]);
+  if(users.find(u=>u.email===email)){setFgErr('fg-re','Account already exists with this email');return}
+  const user={id:uid(),fname,lname,email,school,role,password:btoa(pass),created:Date.now()};
+  users.push(user);
+  LS.set(USERS_KEY,users);
+  LS.set(SESSION_KEY,user.id);
+  CU=user;
+  LS.set(dk('settings'),{school,year:'2024-25',threshold:75});
+  showNotif('Account created! Welcome to AttendEase 🎉');
+  startApp();
+}
+
+function doLogout(){
+  if(!confirm('Sign out of AttendEase?'))return;
+  LS.rm(SESSION_KEY);
+  CU=null;
+  location.reload();
+}
+
+function checkSession(){
+  const sid=localStorage.getItem(SESSION_KEY);
+  if(!sid)return false;
+  const users=LS.get(USERS_KEY,[]);
+  const user=users.find(u=>u.id===sid);
+  if(!user)return false;
+  CU=user;
+  return true;
+}
+
+// ─────────────────────────────────────────
+//  APP INIT
+// ─────────────────────────────────────────
+const charts={};
+
+function startApp(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('app').classList.add('active');
+  updateDate();
+  setInterval(updateDate,30000);
+  setupSidebar();
+  syncDropdowns();
+  nav('dashboard');
+}
+
+function updateDate(){
+  const el=document.getElementById('tb-date');
+  if(el)el.textContent=new Date().toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+}
+
+function setupSidebar(){
+  const el=document.getElementById('s-ava');
+  el.style.background=acolor(CU.fname);
+  el.textContent=inits(CU);
+  document.getElementById('s-uname').textContent=`${CU.fname} ${CU.lname}`;
+  document.getElementById('s-urole').textContent=CU.role==='admin'?'Administrator':'Teacher';
+  updBadges();
+}
+
+function updBadges(){
+  document.getElementById('nb-s').textContent=gd('students').length;
+  document.getElementById('nb-c').textContent=gd('classes').length;
+  document.getElementById('nb-t').textContent=gd('teachers').length;
+}
+
+// ─────────────────────────────────────────
+//  PER-ACCOUNT DATA
+// ─────────────────────────────────────────
+function gd(name){return LS.get(dk(name),[])}
+function sd(name,v){LS.set(dk(name),v)}
+function gSettings(){return LS.getObj(dk('settings'),{school:CU.school||'',year:'2024-25',threshold:75})}
+
+// ─────────────────────────────────────────
+//  NAVIGATION
+// ─────────────────────────────────────────
+const TITLES={dashboard:'Dashboard',students:'Students',classes:'Classes',teachers:'Teachers',mark:'Mark Attendance',records:'Records',reports:'Reports',settings:'Settings',account:'My Account'};
+
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el)el.classList.add('active');
+  document.getElementById('ptitle').textContent=TITLES[page]||page;
+  const rs={dashboard:renderDash,students:renderStudents,classes:renderClasses,teachers:renderTeachers,records:renderRecords,reports:renderReports,settings:loadSettingsPage,account:loadAccount};
+  if(rs[page])rs[page]();
+}
+
+function navTo(page){
+  // find nav button and click
+  const btn=[...document.querySelectorAll('.ni')].find(n=>{
+    const oc=n.getAttribute('onclick')||'';
+    return oc.includes(`'${page}'`);
+  });
+  nav(page,btn);
+}
+
+// ─────────────────────────────────────────
+//  DROPDOWNS SYNC
+// ─────────────────────────────────────────
+function syncDropdowns(){
+  const classes=gd('classes');
+  ['att-cls','rec-cls','stu-cf','ms-cls','rep-cls-f'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const cur=el.value;
+    while(el.options.length>1)el.remove(1);
+    classes.forEach(c=>{const o=new Option(c.name,c.id);el.add(o)});
+    if(classes.find(c=>c.id===cur))el.value=cur;
+  });
+  updBadges();
+}
+
+// ─────────────────────────────────────────
+//  DASHBOARD
+// ─────────────────────────────────────────
+function renderDash(){
+  const students=gd('students'),classes=gd('classes'),att=gd('attendance');
+  const today=new Date().toISOString().split('T')[0];
+  const tAtt=att.filter(a=>a.date===today);
+  const p=tAtt.filter(a=>a.status==='present').length;
+  const ab=tAtt.filter(a=>a.status==='absent').length;
+  const lt=tAtt.filter(a=>a.status==='late').length;
+  const allP=att.filter(a=>a.status==='present').length;
+  const rate=att.length?pct(allP,att.length):0;
+
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="sc"><div class="sc-icon blue">👥</div><div class="sc-val">${students.length}</div><div class="sc-lbl">Total Students</div><div class="sc-sub neu">${students.filter(s=>s.status==='active').length} active</div></div>
+    <div class="sc"><div class="sc-icon green">📚</div><div class="sc-val">${classes.length}</div><div class="sc-lbl">Total Classes</div><div class="sc-sub neu">${classes.length} configured</div></div>
+    <div class="sc"><div class="sc-icon orange">✅</div><div class="sc-val">${p}</div><div class="sc-lbl">Present Today</div><div class="sc-sub ${p>0?'up':'neu'}">${students.length?pct(p,students.filter(s=>s.status==='active').length||1):0}% rate</div></div>
+    <div class="sc"><div class="sc-icon red">❌</div><div class="sc-val">${ab}</div><div class="sc-lbl">Absent Today</div><div class="sc-sub ${ab>0?'down':'neu'}">${ab} students</div></div>
+    <div class="sc"><div class="sc-icon cyan">📊</div><div class="sc-val">${rate}%</div><div class="sc-lbl">Overall Rate</div><div class="sc-sub ${rate>=75?'up':'down'}">${rate>=75?'On track':'Below target'}</div></div>
+  `;
+
+  // Trend chart – last 7 days
+  const last7=[];
+  for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);last7.push(d.toISOString().split('T')[0])}
+  const tData=last7.map(date=>{
+    const da=att.filter(a=>a.date===date);
+    return da.length?pct(da.filter(a=>a.status==='present').length,da.length):null;
+  });
+  dChart('trend');
+  const tc=document.getElementById('ch-trend');
+  if(tc)charts.trend=new Chart(tc,{type:'line',data:{labels:last7.map(d=>new Date(d).toLocaleDateString('en',{weekday:'short'})),datasets:[{label:'%',data:tData,borderColor:'#4f46e5',backgroundColor:'rgba(79,70,229,.1)',fill:true,tension:.4,pointBackgroundColor:'#4f46e5',pointRadius:4,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}}}}});
+
+  // Pie summary
+  const totalP=att.filter(a=>a.status==='present').length;
+  const totalAb=att.filter(a=>a.status==='absent').length;
+  const totalLt=att.filter(a=>a.status==='late').length;
+  dChart('pie');
+  const pc=document.getElementById('ch-pie');
+  if(pc&&(totalP||totalAb||totalLt))
+    charts.pie=new Chart(pc,{type:'doughnut',data:{labels:['Present','Absent','Late'],datasets:[{data:[totalP,totalAb,totalLt],backgroundColor:['#10b981','#ef4444','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:8,padding:14}}}}});
+  else if(pc){
+    const ctx=pc.getContext('2d');ctx.clearRect(0,0,pc.width,pc.height);
+    ctx.fillStyle='#f1f5f9';ctx.beginPath();ctx.arc(pc.width/2,pc.height/2,60,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle='#94a3b8';ctx.font='12px Plus Jakarta Sans';ctx.textAlign='center';ctx.fillText('No data yet',pc.width/2,pc.height/2+4);
+  }
+
+  // Recent students
+  const recent=[...students].reverse().slice(0,5);
+  document.getElementById('dash-recents').innerHTML=recent.length?recent.map(s=>{
+    const cls=classes.find(c=>c.id===s.classId);
+    const sa=att.filter(a=>a.studentId===s.id);
+    const r=sa.length?pct(sa.filter(a=>a.status==='present').length,sa.length):0;
+    return `<div style="display:flex;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border)">
+      <div class="ava" style="width:30px;height:30px;font-size:11px;background:${acolor(s.fname)}">${inits(s)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="fw6 fs13" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.fname} ${s.lname}</div>
+        <div class="fs12 tc-m">${s.roll}${cls?' · '+cls.name:''}</div>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:${r>=75?'var(--success)':'var(--danger)'}">${r}%</div>
+    </div>`;
+  }).join(''):`<div class="empty"><div class="ei">👥</div><h3>No students yet</h3><p>Add students from the Students section.</p></div>`;
+
+  // Today summary
+  const active=students.filter(s=>s.status==='active').length;
+  document.getElementById('dash-today').innerHTML=`
+    <div class="rrow"><span class="rlbl">Present</span><span class="rval tc-s">${p}</span></div>
+    <div class="rrow"><span class="rlbl">Absent</span><span class="rval tc-d">${ab}</span></div>
+    <div class="rrow"><span class="rlbl">Late</span><span class="rval tc-w">${lt}</span></div>
+    <div class="rrow"><span class="rlbl">Not Marked</span><span class="rval tc-m">${Math.max(0,active-tAtt.length)}</span></div>
+    <div class="rrow"><span class="rlbl">Overall Rate</span><span class="rval tc-p">${rate}%</span></div>
+    <div class="rrow"><span class="rlbl">Date</span><span class="rval fs13 tc-m">${new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span></div>
+  `;
+}
+
+// ─────────────────────────────────────────
+//  STUDENTS
+// ─────────────────────────────────────────
+function renderStudents(){
+  const q=gv('stu-q').toLowerCase(),cf=gv('stu-cf');
+  const classes=gd('classes'),att=gd('attendance');
+  let list=gd('students');
+  if(q)list=list.filter(s=>(s.fname+' '+s.lname+s.roll).toLowerCase().includes(q));
+  if(cf)list=list.filter(s=>s.classId===cf);
+  const tbody=document.getElementById('stu-tbody'),empty=document.getElementById('stu-empty');
+  if(!list.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=list.map((s,i)=>{
+    const cls=classes.find(c=>c.id===s.classId);
+    const sa=att.filter(a=>a.studentId===s.id);
+    const r=sa.length?pct(sa.filter(a=>a.status==='present').length,sa.length):0;
+    return `<tr>
+      <td class="tc-m fs12">${i+1}</td>
+      <td><div style="display:flex;align-items:center;gap:9px">
+        <div class="ava" style="width:28px;height:28px;font-size:10px;background:${acolor(s.fname)}">${inits(s)}</div>
+        <div><div class="tdb">${s.fname} ${s.lname}</div><div class="fs12 tc-m">${s.email||''}</div></div>
+      </div></td>
+      <td><span class="badge bb">${s.roll}</span></td>
+      <td>${cls?`<span class="badge bgr">${cls.name}</span>`:'<span class="tc-m">—</span>'}</td>
+      <td class="tc-m fs13">${s.phone||'—'}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div class="pbar" style="width:64px"><div class="pfill" style="width:${r}%;background:${r>=75?'var(--success)':'var(--danger)'}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${r>=75?'var(--success)':'var(--danger)'}">${r}%</span>
+      </div></td>
+      <td><span class="badge ${s.status==='active'?'bg':'br'}">${s.status}</span></td>
+      <td><div class="flex g8">
+        <button class="btn btn-outline btn-icon" title="Edit" onclick="editStudent('${s.id}')">✏️</button>
+        <button class="btn btn-danger btn-icon" title="Delete" onclick="delStudent('${s.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function saveStudent(){
+  const id=gv('stu-edit-id');
+  const fname=gv('ms-fname').trim(),lname=gv('ms-lname').trim(),roll=gv('ms-roll').trim();
+  if(!fname||!lname||!roll){showNotif('First name, last name and roll number are required','error');return}
+  const students=gd('students');
+  if(students.find(s=>s.roll===roll&&s.id!==id)){showNotif('Roll number already exists','error');return}
+  const data={fname,lname,roll,classId:gv('ms-cls'),email:gv('ms-email').trim(),phone:gv('ms-phone').trim(),parent:gv('ms-parent').trim(),status:gv('ms-status')};
+  if(id){
+    const idx=students.findIndex(s=>s.id===id);
+    if(idx>-1)students[idx]={...students[idx],...data};
+    showNotif('Student updated successfully!');
+  } else {
+    students.push({id:uid(),created:Date.now(),...data});
+    showNotif('Student added successfully!');
+  }
+  sd('students',students);
+  closeMods();syncDropdowns();renderStudents();
+}
+
+function editStudent(id){
+  const s=gd('students').find(x=>x.id===id);if(!s)return;
+  document.getElementById('mod-stu-title').textContent='Edit Student';
+  sv('stu-edit-id',id);sv('ms-fname',s.fname);sv('ms-lname',s.lname);sv('ms-roll',s.roll);
+  sv('ms-email',s.email||'');sv('ms-phone',s.phone||'');sv('ms-parent',s.parent||'');sv('ms-status',s.status);
+  syncDropdowns();document.getElementById('ms-cls').value=s.classId||'';
+  openMod('add-student');
+}
+
+function delStudent(id){
+  confirm2('Delete this student? Their attendance records will also be removed.',()=>{
+    sd('students',gd('students').filter(s=>s.id!==id));
+    sd('attendance',gd('attendance').filter(a=>a.studentId!==id));
+    syncDropdowns();renderStudents();showNotif('Student deleted');
+  });
+}
+
+// ─────────────────────────────────────────
+//  CLASSES
+// ─────────────────────────────────────────
+function renderClasses(){
+  const q=gv('cls-q').toLowerCase();
+  const students=gd('students'),att=gd('attendance');
+  let list=gd('classes');
+  if(q)list=list.filter(c=>(c.name+c.subject).toLowerCase().includes(q));
+  const tbody=document.getElementById('cls-tbody'),empty=document.getElementById('cls-empty');
+  if(!list.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=list.map((c,i)=>{
+    const cnt=students.filter(s=>s.classId===c.id).length;
+    const ca=att.filter(a=>a.classId===c.id);
+    const r=ca.length?pct(ca.filter(a=>a.status==='present').length,ca.length):0;
+    return `<tr>
+      <td class="tc-m fs12">${i+1}</td>
+      <td class="tdb">${c.name}</td>
+      <td><span class="badge bb">${c.subject}</span></td>
+      <td class="tc-m fs13">${c.schedule||'—'}</td>
+      <td><span class="badge bgr">${cnt} student${cnt!==1?'s':''}</span></td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div class="pbar" style="width:72px"><div class="pfill" style="width:${r}%;background:${r>=75?'var(--success)':'var(--danger)'}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${r>=75?'var(--success)':'var(--danger)'}">${r}%</span>
+      </div></td>
+      <td><div class="flex g8">
+        <button class="btn btn-outline btn-icon" title="Edit" onclick="editClass('${c.id}')">✏️</button>
+        <button class="btn btn-danger btn-icon" title="Delete" onclick="delClass('${c.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function saveClass(){
+  const id=gv('cls-edit-id');
+  const name=gv('mc-name').trim(),subject=gv('mc-subject').trim();
+  if(!name||!subject){showNotif('Class name and subject are required','error');return}
+  const classes=gd('classes');
+  const data={name,subject,schedule:gv('mc-schedule').trim(),room:gv('mc-room').trim(),teacher:gv('mc-teacher').trim(),desc:gv('mc-desc').trim()};
+  if(id){
+    const idx=classes.findIndex(c=>c.id===id);
+    if(idx>-1)classes[idx]={...classes[idx],...data};
+    showNotif('Class updated!');
+  } else {
+    classes.push({id:uid(),...data});showNotif('Class added!');
+  }
+  sd('classes',classes);closeMods();syncDropdowns();renderClasses();
+}
+
+function editClass(id){
+  const c=gd('classes').find(x=>x.id===id);if(!c)return;
+  document.getElementById('mod-cls-title').textContent='Edit Class';
+  sv('cls-edit-id',id);sv('mc-name',c.name);sv('mc-subject',c.subject);
+  sv('mc-schedule',c.schedule||'');sv('mc-room',c.room||'');sv('mc-teacher',c.teacher||'');sv('mc-desc',c.desc||'');
+  openMod('add-class');
+}
+
+function delClass(id){
+  confirm2('Delete this class? Students will be unassigned and all attendance for this class will be removed.',()=>{
+    sd('classes',gd('classes').filter(c=>c.id!==id));
+    sd('students',gd('students').map(s=>s.classId===id?{...s,classId:''}:s));
+    sd('attendance',gd('attendance').filter(a=>a.classId!==id));
+    syncDropdowns();renderClasses();showNotif('Class deleted');
+  });
+}
+
+// ─────────────────────────────────────────
+//  TEACHERS
+// ─────────────────────────────────────────
+function renderTeachers(){
+  const q=gv('tch-q').toLowerCase();
+  let list=gd('teachers');
+  if(q)list=list.filter(t=>(t.fname+' '+t.lname+t.subject).toLowerCase().includes(q));
+  const tbody=document.getElementById('tch-tbody'),empty=document.getElementById('tch-empty');
+  if(!list.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=list.map((t,i)=>`<tr>
+    <td class="tc-m fs12">${i+1}</td>
+    <td><div style="display:flex;align-items:center;gap:9px">
+      <div class="ava" style="width:28px;height:28px;font-size:10px;background:${acolor(t.fname)}">${inits(t)}</div>
+      <div class="tdb">${t.fname} ${t.lname}</div>
+    </div></td>
+    <td><span class="badge bb">${t.subject||'—'}</span></td>
+    <td class="tc-m fs13">${t.classes||'—'}</td>
+    <td class="tc-m fs13">${t.email||'—'}</td>
+    <td class="tc-m fs13">${t.phone||'—'}</td>
+    <td><span class="badge ${t.status==='active'?'bg':'br'}">${t.status}</span></td>
+    <td><div class="flex g8">
+      <button class="btn btn-outline btn-icon" onclick="editTeacher('${t.id}')">✏️</button>
+      <button class="btn btn-danger btn-icon" onclick="delTeacher('${t.id}')">🗑️</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+function saveTeacher(){
+  const id=gv('tch-edit-id');
+  const fname=gv('mt-fname').trim(),lname=gv('mt-lname').trim();
+  if(!fname||!lname){showNotif('Name is required','error');return}
+  const teachers=gd('teachers');
+  const data={fname,lname,subject:gv('mt-subject').trim(),classes:gv('mt-classes').trim(),email:gv('mt-email').trim(),phone:gv('mt-phone').trim(),status:gv('mt-status')};
+  if(id){
+    const idx=teachers.findIndex(t=>t.id===id);
+    if(idx>-1)teachers[idx]={...teachers[idx],...data};
+    showNotif('Teacher updated!');
+  } else {
+    teachers.push({id:uid(),...data});showNotif('Teacher added!');
+  }
+  sd('teachers',teachers);closeMods();renderTeachers();updBadges();
+}
+
+function editTeacher(id){
+  const t=gd('teachers').find(x=>x.id===id);if(!t)return;
+  document.getElementById('mod-tch-title').textContent='Edit Teacher';
+  sv('tch-edit-id',id);sv('mt-fname',t.fname);sv('mt-lname',t.lname);sv('mt-subject',t.subject||'');
+  sv('mt-classes',t.classes||'');sv('mt-email',t.email||'');sv('mt-phone',t.phone||'');sv('mt-status',t.status);
+  openMod('add-teacher');
+}
+
+function delTeacher(id){
+  confirm2('Delete this teacher?',()=>{
+    sd('teachers',gd('teachers').filter(t=>t.id!==id));
+    renderTeachers();updBadges();showNotif('Teacher deleted');
+  });
+}
+
+// ─────────────────────────────────────────
+//  MARK ATTENDANCE
+// ─────────────────────────────────────────
+let attMap={};
+
+function loadAtt(){
+  const clsId=gv('att-cls'),date=gv('att-date');
+  const tbody=document.getElementById('att-tbody'),empty=document.getElementById('att-empty');
+  attMap={};
+  if(!clsId||!date){tbody.innerHTML='';empty.style.display='block';document.getElementById('att-sum').textContent='';return}
+  const students=gd('students').filter(s=>s.classId===clsId&&s.status==='active');
+  gd('attendance').filter(a=>a.classId===clsId&&a.date===date).forEach(a=>{attMap[a.studentId]=a.status});
+  if(!students.length){
+    tbody.innerHTML='';empty.style.display='block';
+    empty.innerHTML='<div class="ei">👤</div><h3>No active students</h3><p>Add active students to this class first.</p>';
+    document.getElementById('att-sum').textContent='';return;
+  }
+  empty.style.display='none';
+  renderAttTable(students);
+  updAttSum();
+}
+
+function renderAttTable(students){
+  document.getElementById('att-tbody').innerHTML=students.map((s,i)=>{
+    const st=attMap[s.id]||'';
+    return `<tr id="atr-${s.id}">
+      <td class="tc-m fs12">${i+1}</td>
+      <td class="tdb">${s.fname} ${s.lname}</td>
+      <td><span class="badge bb">${s.roll}</span></td>
+      <td id="ats-${s.id}">${sbadge(st)}</td>
+      <td><div class="abg">
+        <button class="ab present ${st==='present'?'active':''}" onclick="setAttSt('${s.id}','present',this)">✓ Present</button>
+        <button class="ab absent ${st==='absent'?'active':''}" onclick="setAttSt('${s.id}','absent',this)">✗ Absent</button>
+        <button class="ab late ${st==='late'?'active':''}" onclick="setAttSt('${s.id}','late',this)">⏰ Late</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function setAttSt(sid,status,btn){
+  attMap[sid]=status;
+  document.getElementById('atr-'+sid).querySelectorAll('.ab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('ats-'+sid).innerHTML=sbadge(status);
+  updAttSum();
+  // auto-save
+  if(document.getElementById('tog-auto').classList.contains('on'))saveAtt(true);
+}
+
+function updAttSum(){
+  const vals=Object.values(attMap);
+  const p=vals.filter(v=>v==='present').length;
+  const a=vals.filter(v=>v==='absent').length;
+  const l=vals.filter(v=>v==='late').length;
+  const u=gd('students').filter(s=>s.classId===gv('att-cls')&&s.status==='active').length-vals.length;
+  document.getElementById('att-sum').innerHTML=`<span class="tc-s fw7">${p} Present</span> · <span class="tc-d fw7">${a} Absent</span> · <span class="tc-w fw7">${l} Late</span>${u>0?` · <span class="tc-m">${u} unmarked</span>`:''}`;
+}
+
+function markAll(status){
+  const clsId=gv('att-cls'),date=gv('att-date');
+  if(!clsId||!date){showNotif('Select class and date first','error');return}
+  const students=gd('students').filter(s=>s.classId===clsId&&s.status==='active');
+  students.forEach(s=>{attMap[s.id]=status});
+  renderAttTable(students);updAttSum();
+}
+
+function saveAtt(silent=false){
+  const clsId=gv('att-cls'),date=gv('att-date');
+  if(!clsId||!date){if(!silent)showNotif('Select class and date first','error');return}
+  if(!Object.keys(attMap).length){if(!silent)showNotif('No students marked','error');return}
+  let att=gd('attendance').filter(a=>!(a.classId===clsId&&a.date===date));
+  Object.entries(attMap).forEach(([sid,status])=>{
+    att.push({id:uid(),studentId:sid,classId:clsId,date,status,markedAt:new Date().toISOString()});
+  });
+  sd('attendance',att);
+  if(!silent)showNotif(`Saved attendance for ${Object.keys(attMap).length} students ✅`);
+}
+
+// ─────────────────────────────────────────
+//  RECORDS
+// ─────────────────────────────────────────
+function onRecCls(){
+  const clsId=gv('rec-cls');
+  const sel=document.getElementById('rec-stu');
+  while(sel.options.length>1)sel.remove(1);
+  gd('students').filter(s=>!clsId||s.classId===clsId).forEach(s=>sel.add(new Option(`${s.fname} ${s.lname}`,s.id)));
+  renderRecords();
+}
+
+function renderRecords(){
+  const clsId=gv('rec-cls'),stuId=gv('rec-stu'),from=gv('rec-from'),to=gv('rec-to'),stat=gv('rec-stat');
+  const students=gd('students'),classes=gd('classes');
+  let att=gd('attendance');
+  if(clsId)att=att.filter(a=>a.classId===clsId);
+  if(stuId)att=att.filter(a=>a.studentId===stuId);
+  if(from)att=att.filter(a=>a.date>=from);
+  if(to)att=att.filter(a=>a.date<=to);
+  if(stat)att=att.filter(a=>a.status===stat);
+  att.sort((a,b)=>b.date.localeCompare(a.date)||b.markedAt.localeCompare(a.markedAt));
+  document.getElementById('rec-count').textContent=`${att.length} record${att.length!==1?'s':''}`;
+  const tbody=document.getElementById('rec-tbody'),empty=document.getElementById('rec-empty');
+  if(!att.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=att.map(a=>{
+    const s=students.find(x=>x.id===a.studentId);
+    const c=classes.find(x=>x.id===a.classId);
+    const t=new Date(a.markedAt).toLocaleTimeString('en',{hour:'2-digit',minute:'2-digit'});
+    return `<tr>
+      <td class="fw6">${a.date}</td>
+      <td>${s?`<div style="display:flex;align-items:center;gap:7px"><div class="ava" style="width:22px;height:22px;font-size:9px;background:${acolor(s.fname)}">${inits(s)}</div>${s.fname} ${s.lname}</div>`:'Unknown'}</td>
+      <td>${c?`<span class="badge bgr">${c.name}</span>`:'Unknown'}</td>
+      <td>${sbadge(a.status)}</td>
+      <td class="tc-m fs12">${t}</td>
+      <td><div class="flex g8">
+        <button class="btn btn-outline btn-icon" title="Edit" onclick="editRec('${a.id}','${a.status}')">✏️</button>
+        <button class="btn btn-danger btn-icon" title="Delete" onclick="delRec('${a.id}')">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function clearRec(){
+  ['rec-cls','rec-stu','rec-from','rec-to','rec-stat'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  // reset student list
+  const sel=document.getElementById('rec-stu');
+  while(sel.options.length>1)sel.remove(1);
+  gd('students').forEach(s=>sel.add(new Option(`${s.fname} ${s.lname}`,s.id)));
+  renderRecords();
+}
+
+function editRec(id,status){sv('rec-edit-id',id);sv('rec-edit-stat',status);openMod('edit-rec')}
+
+function saveRecEdit(){
+  const id=gv('rec-edit-id'),status=gv('rec-edit-stat');
+  const att=gd('attendance');
+  const idx=att.findIndex(a=>a.id===id);
+  if(idx>-1){att[idx].status=status;att[idx].markedAt=new Date().toISOString();}
+  sd('attendance',att);closeMods();renderRecords();showNotif('Record updated!');
+}
+
+function delRec(id){
+  confirm2('Delete this attendance record permanently?',()=>{
+    sd('attendance',gd('attendance').filter(a=>a.id!==id));
+    renderRecords();showNotif('Record deleted');
+  });
+}
+
+// ─────────────────────────────────────────
+//  REPORTS
+// ─────────────────────────────────────────
+function renderReports(){
+  renderRepOv();
+  // Populate report class filter
+  const sel=document.getElementById('rep-cls-f');
+  while(sel.options.length>1)sel.remove(1);
+  gd('classes').forEach(c=>sel.add(new Option(c.name,c.id)));
+}
+
+function renderRepOv(){
+  const att=gd('attendance');
+  const p=att.filter(a=>a.status==='present').length;
+  const ab=att.filter(a=>a.status==='absent').length;
+  const lt=att.filter(a=>a.status==='late').length;
+  const rate=att.length?pct(p,att.length):0;
+  document.getElementById('rep-stats').innerHTML=`
+    <div class="sc"><div class="sc-icon cyan">📊</div><div class="sc-val">${rate}%</div><div class="sc-lbl">Overall Rate</div></div>
+    <div class="sc"><div class="sc-icon green">✅</div><div class="sc-val">${p}</div><div class="sc-lbl">Total Present</div></div>
+    <div class="sc"><div class="sc-icon red">❌</div><div class="sc-val">${ab}</div><div class="sc-lbl">Total Absent</div></div>
+    <div class="sc"><div class="sc-icon orange">⏰</div><div class="sc-val">${lt}</div><div class="sc-lbl">Total Late</div></div>
+  `;
+  // Monthly bar
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const md=months.map((_,mi)=>{
+    const ma=att.filter(a=>new Date(a.date).getMonth()===mi);
+    return ma.length?pct(ma.filter(a=>a.status==='present').length,ma.length):0;
+  });
+  dChart('monthly');
+  const mc=document.getElementById('ch-monthly');
+  if(mc)charts.monthly=new Chart(mc,{type:'bar',data:{labels:months,datasets:[{data:md,backgroundColor:'rgba(79,70,229,.75)',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{callback:v=>v+'%'}}}}});
+  // Dist doughnut
+  dChart('dist');
+  const dc=document.getElementById('ch-dist');
+  if(dc&&(p||ab||lt))charts.dist=new Chart(dc,{type:'doughnut',data:{labels:['Present','Absent','Late'],datasets:[{data:[p,ab,lt],backgroundColor:['#10b981','#ef4444','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'bottom',labels:{usePointStyle:true,padding:14}}}}});
+}
+
+function renderRepCls(){
+  const classes=gd('classes'),students=gd('students'),att=gd('attendance');
+  const tbody=document.getElementById('rep-cls-tbody'),empty=document.getElementById('rep-cls-empty');
+  if(!classes.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=classes.map(c=>{
+    const cnt=students.filter(s=>s.classId===c.id).length;
+    const ca=att.filter(a=>a.classId===c.id);
+    const sessions=[...new Set(ca.map(a=>a.date))].length;
+    const r=ca.length?pct(ca.filter(a=>a.status==='present').length,ca.length):0;
+    return `<tr>
+      <td class="tdb">${c.name}</td>
+      <td><span class="badge bb">${c.subject}</span></td>
+      <td>${cnt}</td><td>${sessions}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div class="pbar" style="width:72px"><div class="pfill" style="width:${r}%;background:${r>=75?'var(--success)':'var(--danger)'}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${r>=75?'var(--success)':'var(--danger)'}">${r}%</span>
+      </div></td>
+      <td><span class="badge ${r>=75?'bg':'br'}">${r>=75?'Good':'Low'}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function renderRepStu(){
+  const clsF=gv('rep-cls-f'),q=(gv('rep-stu-q')||'').toLowerCase();
+  const classes=gd('classes'),att=gd('attendance');
+  let students=gd('students');
+  if(clsF)students=students.filter(s=>s.classId===clsF);
+  if(q)students=students.filter(s=>(s.fname+' '+s.lname).toLowerCase().includes(q));
+  const tbody=document.getElementById('rep-stu-tbody'),empty=document.getElementById('rep-stu-empty');
+  if(!students.length){tbody.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+  tbody.innerHTML=students.map(s=>{
+    const sa=att.filter(a=>a.studentId===s.id);
+    const p=sa.filter(a=>a.status==='present').length;
+    const ab=sa.filter(a=>a.status==='absent').length;
+    const lt=sa.filter(a=>a.status==='late').length;
+    const r=sa.length?pct(p,sa.length):0;
+    const cls=classes.find(c=>c.id===s.classId);
+    return `<tr>
+      <td><div style="display:flex;align-items:center;gap:8px">
+        <div class="ava" style="width:26px;height:26px;font-size:10px;background:${acolor(s.fname)}">${inits(s)}</div>
+        <span class="fw6">${s.fname} ${s.lname}</span>
+      </div></td>
+      <td>${cls?`<span class="badge bgr">${cls.name}</span>`:'—'}</td>
+      <td class="tc-s fw7">${p}</td>
+      <td class="tc-d fw7">${ab}</td>
+      <td class="tc-w fw7">${lt}</td>
+      <td class="tc-m">${sa.length}</td>
+      <td><div style="display:flex;align-items:center;gap:7px">
+        <div class="pbar" style="width:64px"><div class="pfill" style="width:${r}%;background:${r>=75?'var(--success)':'var(--danger)'}"></div></div>
+        <span style="font-size:12px;font-weight:700;color:${r>=75?'var(--success)':'var(--danger)'}">${r}%</span>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function switchTab(id,btn){
+  ['rep-ov','rep-cls','rep-stu'].forEach(tid=>{document.getElementById(tid).style.display=tid===id?'block':'none'});
+  btn.closest('.tabs-row').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  if(id==='rep-cls')renderRepCls();
+  if(id==='rep-stu')renderRepStu();
+}
+
+// ─────────────────────────────────────────
+//  SETTINGS
+// ─────────────────────────────────────────
+function loadSettingsPage(){
+  const s=gSettings();
+  sv('set-school',s.school||CU.school||'');
+  sv('set-year',s.year||'2024-25');
+  sv('set-thr',s.threshold||75);
+}
+
+function saveSettings(){
+  const s={school:gv('set-school').trim(),year:gv('set-year').trim(),threshold:parseInt(gv('set-thr'))||75};
+  LS.set(dk('settings'),s);showNotif('Settings saved!');
+}
+
+function resetData(){
+  confirm2('PERMANENTLY delete ALL your data? Students, classes, teachers and all attendance records will be erased. This cannot be undone!',()=>{
+    ['students','classes','teachers','attendance'].forEach(n=>LS.rm(dk(n)));
+    syncDropdowns();navTo('dashboard');showNotif('All data cleared');
+  });
+}
+
+function exportJSON(){
+  const data={students:gd('students'),classes:gd('classes'),teachers:gd('teachers'),attendance:gd('attendance'),exportedAt:new Date().toISOString(),exportedBy:`${CU.fname} ${CU.lname}`};
+  dlFile('attendease-data.json',JSON.stringify(data,null,2),'application/json');
+  showNotif('Data exported!');
+}
+
+function exportCSV(){
+  const att=gd('attendance'),students=gd('students'),classes=gd('classes');
+  if(!att.length){showNotif('No attendance records to export','error');return}
+  const rows=[['Date','Student Name','Roll No','Class','Status','Marked At']];
+  [...att].sort((a,b)=>b.date.localeCompare(a.date)).forEach(a=>{
+    const s=students.find(x=>x.id===a.studentId),c=classes.find(x=>x.id===a.classId);
+    rows.push([a.date,s?`${s.fname} ${s.lname}`:'Unknown',s?s.roll:'',c?c.name:'Unknown',a.status,a.markedAt]);
+  });
+  dlFile('attendance.csv',rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n'),'text/csv');
+  showNotif('CSV exported!');
+}
+
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(data.students)sd('students',data.students);
+      if(data.classes)sd('classes',data.classes);
+      if(data.teachers)sd('teachers',data.teachers);
+      if(data.attendance)sd('attendance',data.attendance);
+      syncDropdowns();navTo('dashboard');showNotif('Data imported successfully!');
+    }catch{showNotif('Invalid JSON file','error')}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+function dlFile(filename,content,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename;a.click();URL.revokeObjectURL(a.href);
+}
+
+// ─────────────────────────────────────────
+//  MY ACCOUNT
+// ─────────────────────────────────────────
+function loadAccount(){
+  const el=document.getElementById('acc-ava');
+  el.style.background=acolor(CU.fname);el.textContent=inits(CU);
+  document.getElementById('acc-name').textContent=`${CU.fname} ${CU.lname}`;
+  document.getElementById('acc-email-lbl').textContent=CU.email;
+  document.getElementById('acc-school-lbl').textContent=CU.school||'';
+  document.getElementById('acc-signed-as').textContent=`${CU.fname} ${CU.lname} (${CU.email})`;
+  sv('acc-fname',CU.fname);sv('acc-lname',CU.lname);sv('acc-school',CU.school||'');
+  sv('acc-email',CU.email);sv('acc-role',CU.role==='admin'?'Administrator':'Teacher');
+  ['cp-cur','cp-new','cp-con'].forEach(id=>sv(id,''));
+  ['fg-cc','fg-cn','fg-ck'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('err');const e=el.querySelector('.errmsg');if(e)e.textContent=''}});
+}
+
+function saveProfile(){
+  const fname=gv('acc-fname').trim(),lname=gv('acc-lname').trim(),school=gv('acc-school').trim();
+  if(!fname||!lname){showNotif('Name is required','error');return}
+  const users=LS.get(USERS_KEY,[]);
+  const idx=users.findIndex(u=>u.id===CU.id);
+  if(idx>-1){users[idx].fname=fname;users[idx].lname=lname;users[idx].school=school;LS.set(USERS_KEY,users);CU=users[idx];}
+  setupSidebar();loadAccount();showNotif('Profile updated!');
+}
+
+function changePassword(){
+  const cur=gv('cp-cur'),np=gv('cp-new'),con=gv('cp-con');
+  // clear errors
+  ['fg-cc','fg-cn','fg-ck'].forEach(id=>{const el=document.getElementById(id);if(el){el.classList.remove('err');const e=el.querySelector('.errmsg');if(e)e.textContent=''}});
+  let ok=true;
+  const setE=(id,msg)=>{const el=document.getElementById(id);if(el){el.classList.add('err');const e=el.querySelector('.errmsg');if(e)e.textContent=msg;}ok=false};
+  if(!cur)setE('fg-cc','Required');
+  else if(CU.password!==btoa(cur))setE('fg-cc','Incorrect current password');
+  if(!np||np.length<6)setE('fg-cn','Minimum 6 characters');
+  if(np!==con)setE('fg-ck','Passwords do not match');
+  if(!ok)return;
+  const users=LS.get(USERS_KEY,[]);
+  const idx=users.findIndex(u=>u.id===CU.id);
+  if(idx>-1){users[idx].password=btoa(np);LS.set(USERS_KEY,users);CU=users[idx];}
+  ['cp-cur','cp-new','cp-con'].forEach(id=>sv(id,''));
+  showNotif('Password changed successfully!');
+}
+
+// ─────────────────────────────────────────
+//  MODAL HELPERS
+// ─────────────────────────────────────────
+function openMod(name){
+  closeMods();
+  if(name==='add-student'){
+    sv('stu-edit-id','');
+    document.getElementById('mod-stu-title').textContent='Add Student';
+    ['ms-fname','ms-lname','ms-roll','ms-email','ms-phone','ms-parent'].forEach(id=>sv(id,''));
+    sv('ms-status','active');syncDropdowns();
+  }
+  if(name==='add-class'){
+    sv('cls-edit-id','');
+    document.getElementById('mod-cls-title').textContent='Add Class';
+    ['mc-name','mc-subject','mc-schedule','mc-room','mc-teacher','mc-desc'].forEach(id=>sv(id,''));
+  }
+  if(name==='add-teacher'){
+    sv('tch-edit-id','');
+    document.getElementById('mod-tch-title').textContent='Add Teacher';
+    ['mt-fname','mt-lname','mt-subject','mt-classes','mt-email','mt-phone'].forEach(id=>sv(id,''));
+    sv('mt-status','active');
+  }
+  document.getElementById('mo-'+name).classList.add('open');
+}
+
+function closeMods(){document.querySelectorAll('.mo').forEach(m=>m.classList.remove('open'))}
+
+function confirm2(msg,cb){
+  document.getElementById('conf-msg').textContent=msg;
+  document.getElementById('conf-ok').onclick=()=>{cb();closeMods()};
+  document.getElementById('mo-confirm').classList.add('open');
+}
+
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)closeMods()}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMods()});
+
+// ─────────────────────────────────────────
+//  NOTIFICATION
+// ─────────────────────────────────────────
+let ntTimer;
+function showNotif(msg,type='success'){
+  const n=document.getElementById('notif');
+  document.getElementById('ni').textContent=type==='error'?'❌':'✅';
+  document.getElementById('nt').textContent=msg;
+  n.className='notif'+(type==='error'?' error':'');
+  setTimeout(()=>n.classList.add('show'),10);
+  clearTimeout(ntTimer);ntTimer=setTimeout(()=>n.classList.remove('show'),3200);
+}
+
+// ─────────────────────────────────────────
+//  UTILS
+// ─────────────────────────────────────────
+const ACOLS=['#4f46e5','#06b6d4','#10b981','#f59e0b','#ef4444','#8b5cf6','#ec4899','#0ea5e9','#84cc16'];
+function acolor(n){return ACOLS[((n||'A').charCodeAt(0))%ACOLS.length]}
+function inits(u){return `${(u.fname||'?')[0]}${(u.lname||'?')[0]}`.toUpperCase()}
+function pct(a,b){return b?Math.round(a/b*100):0}
+function gv(id){const el=document.getElementById(id);return el?el.value:''}
+function sv(id,val){const el=document.getElementById(id);if(el)el.value=val}
+function dChart(n){if(charts[n]){charts[n].destroy();delete charts[n]}}
+function sbadge(s){
+  return {present:'<span class="badge bg">✓ Present</span>',absent:'<span class="badge br">✗ Absent</span>',late:'<span class="badge by">⏰ Late</span>'}[s]||'<span class="badge bgr">—</span>';
+}
+
+// ─────────────────────────────────────────
+//  BOOT
+// ─────────────────────────────────────────
+window.addEventListener('DOMContentLoaded',()=>{
+  // Set attendance date to today
+  const ad=document.getElementById('att-date');
+  if(ad)ad.value=new Date().toISOString().split('T')[0];
+  // Enter key login
+  ['l-pass','l-email'].forEach(id=>{
+    document.getElementById(id).addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+  });
+  document.getElementById('r-pass2').addEventListener('keydown',e=>{if(e.key==='Enter')doRegister()});
+  // Check existing session
+  if(checkSession())startApp();
+});
+</script>
+</body>
+</html>
